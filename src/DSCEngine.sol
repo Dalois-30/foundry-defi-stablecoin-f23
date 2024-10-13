@@ -57,7 +57,7 @@ contract DSCEngine is ReentrancyGuard {
 
     function redeemCollateral() external {}
 
-    function mintDsc() external {}
+    function mintDsc() external {}  
 
     function burnDsc() external {}
 
