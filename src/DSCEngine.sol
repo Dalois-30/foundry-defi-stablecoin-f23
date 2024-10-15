@@ -30,7 +30,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { DecentralizedStableCoin } from "./DecentralizedStableCoin.sol";
 import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-/** 
+/**
  * @title DSCEngine
  * @author Dalois Tapi
  *
@@ -113,7 +113,7 @@ contract DSCEngine is ReentrancyGuard {
     //////////////////////////////////////////////////////////////*/
     function depositCollateralAndMintDsc() external { }
 
-    /** 
+    /**
      * @notice following CEI pattern
      * @param tokenCollateralAddress The address of the token to deposit as collateral
      * @param amountCollateral The amount of collateral to deposit
@@ -156,16 +156,18 @@ contract DSCEngine is ReentrancyGuard {
 
     function healthFactor() external view { }
 
-
     /*//////////////////////////////////////////////////////////////
                     PRIVATE & EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function _getAccountInformation(address user) private view returns (uint256 totalDscMinted, uint256 collateralValueInUsd) {
+    function _getAccountInformation(address user)
+        private
+        view
+        returns (uint256 totalDscMinted, uint256 collateralValueInUsd)
+    {
         totalDscMinted = s_dscMinted[user];
         collateralValueInUsd = getAccountCollateralValue(user);
     }
-
 
     /**
      * Returns how close to liquidation a user is
@@ -210,7 +212,7 @@ contract DSCEngine is ReentrancyGuard {
 
     function getUsdValue(address token, uint256 amount) public view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
-        (, int256 price, , , ) = priceFeed.latestRoundData();
+        (, int256 price,,,) = priceFeed.latestRoundData();
         // If 1 ETH = $1000,
         // The returned value from CL will be 1000 * 1e8
         return (uint256(price) * ADDITIONAL_FEED_PRECISION * amount) / PRECISION;
