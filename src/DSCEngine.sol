@@ -66,7 +66,7 @@ contract DSCEngine is ReentrancyGuard {
                             STATE VARIABLES
     //////////////////////////////////////////////////////////////*/
     uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
-    uint256 private PRECISION = 1e18;
+    uint256 private constant PRECISION = 1e18;
     uint256 private constant LIQUIDATION_THRESHOLD = 50; // mean you need to be 200% overcollateralized
     uint256 private constant LIQUIDATION_PRECISION = 100;
     uint256 private constant MIN_HEALTH_FACTOR = 1e18;
@@ -167,9 +167,12 @@ contract DSCEngine is ReentrancyGuard {
         uint256 amountDscToBurn
     )
         external
+        moreThanZero(amountCollateral)
+        isAllowedToken(tokenCollateralAddress)
     {
-        burnDsc(amountDscToBurn);
-        redeemCollateral(tokenCollateralAddress, amountCollateral);
+        _burnDsc(amountDscToBurn, msg.sender, msg.sender);
+        _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender);
+        _revertIfHealthFactorIsBroken(msg.sender);
     }
 
     // In order to redeem collateral:
@@ -180,9 +183,10 @@ contract DSCEngine is ReentrancyGuard {
         address tokenCollateralAddress,
         uint256 amountCollateral
     )
-        public
+        external
         moreThanZero(amountCollateral)
         nonReentrant
+        isAllowedToken(tokenCollateralAddress)
     {
         _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender);
         _revertIfHealthFactorIsBroken(msg.sender);
@@ -198,7 +202,7 @@ contract DSCEngine is ReentrancyGuard {
         // if they minted too much ($150 DSC, $100 ETH)
         _revertIfHealthFactorIsBroken(msg.sender);
         bool minted = i_dscAddress.mint(msg.sender, amountDscToMint);
-        if (!minted) revert DSCEngine__MintDscFailed();
+        if (minted != true) revert DSCEngine__MintDscFailed();
     }
 
     function burnDsc(uint256 amount) public moreThanZero(amount) {
@@ -375,5 +379,79 @@ contract DSCEngine is ReentrancyGuard {
         returns (uint256 totalDscMinted, uint256 collateralValueInUsd)
     {
         (totalDscMinted, collateralValueInUsd) = _getAccountInformation(user);
+    }
+
+    // function getUsdValue(
+    //     address token,
+    //     uint256 amount // in WEI
+    // )
+    //     external
+    //     view
+    //     returns (uint256)
+    // {
+    //     return _getUsdValue(token, amount);
+    // }
+
+    // function getCollateralBalanceOfUser(address user, address token) external view returns (uint256) {
+    //     return s_collateralDeposited[user][token];
+    // }
+
+    // function getAccountCollateralValue(address user) public view returns (uint256 totalCollateralValueInUsd) {
+    //     for (uint256 index = 0; index < s_collateralTokens.length; index++) {
+    //         address token = s_collateralTokens[index];
+    //         uint256 amount = s_collateralDeposited[user][token];
+    //         totalCollateralValueInUsd += _getUsdValue(token, amount);
+    //     }
+    //     return totalCollateralValueInUsd;
+    // }
+
+    // function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) public view returns (uint256) {
+    //     AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
+    //     (, int256 price,,,) = priceFeed.staleCheckLatestRoundData();
+    //     // $100e18 USD Debt
+    //     // 1 ETH = 2000 USD
+    //     // The returned value from Chainlink will be 2000 * 1e8
+    //     // Most USD pairs have 8 decimals, so we will just pretend they all do
+    //     return ((usdAmountInWei * PRECISION) / (uint256(price) * ADDITIONAL_FEED_PRECISION));
+    // }
+
+    function getPrecision() external pure returns (uint256) {
+        return PRECISION;
+    }
+
+    function getAdditionalFeedPrecision() external pure returns (uint256) {
+        return ADDITIONAL_FEED_PRECISION;
+    }
+
+    function getLiquidationThreshold() external pure returns (uint256) {
+        return LIQUIDATION_THRESHOLD;
+    }
+
+    function getLiquidationBonus() external pure returns (uint256) {
+        return LIQUIDATION_BONUS;
+    }
+
+    function getLiquidationPrecision() external pure returns (uint256) {
+        return LIQUIDATION_PRECISION;
+    }
+
+    function getMinHealthFactor() external pure returns (uint256) {
+        return MIN_HEALTH_FACTOR;
+    }
+
+    function getCollateralTokens() external view returns (address[] memory) {
+        return s_collateralTokens;
+    }
+
+    function getDsc() external view returns (address) {
+        return address(i_dscAddress);
+    }
+
+    function getCollateralTokenPriceFeed(address token) external view returns (address) {
+        return s_priceFeeds[token];
+    }
+
+    function getHealthFactor(address user) external view returns (uint256) {
+        return _healthFactor(user);
     }
 }
