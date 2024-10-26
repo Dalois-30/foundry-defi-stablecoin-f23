@@ -15,8 +15,9 @@ import { StdInvariant } from "forge-std/StdInvariant.sol";
 import { console } from "forge-std/console.sol";
 import { DeployDSC } from "../../script/DeployDSC.s.sol";
 import { HelperConfig } from "../../script/HelperConfig.s.sol";
-import { DecentralizedStableCoin } from "../../src/DecentralizedStableCoin.sol";    
+import { DecentralizedStableCoin } from "../../src/DecentralizedStableCoin.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ERC20Mock } from "../mocks/ERC20Mock.sol";
 
 contract InvariantsTest is StdInvariant, Test {
     DeployDSC deployDSC;
@@ -40,8 +41,8 @@ contract InvariantsTest is StdInvariant, Test {
         // get the value of all the collateral in the protocol
         // compare it to all the debt (dsc)
         uint256 totalSupply = dsc.totalSupply();
-        uint totalWethDeposited = IERC20(weth).balanceOf(address(engine));
-        uint totalBtcDeposited = IERC20(btc).balanceOf(address(engine));
+        uint256 totalWethDeposited = IERC20(weth).balanceOf(address(engine));
+        uint256 totalBtcDeposited = IERC20(btc).balanceOf(address(engine));
 
         uint256 wethValue = engine.getUsdValue(weth, totalWethDeposited);
         uint256 btcValue = engine.getUsdValue(btc, totalBtcDeposited);
@@ -50,6 +51,20 @@ contract InvariantsTest is StdInvariant, Test {
         console.log("totalSupply", totalSupply);
         console.log("totalCollateralValue", totalCollateralValue);
 
-        assert(wethValue + btcValue >= totalSupply);
+        assert(totalCollateralValue == totalSupply);
+    }
+
+        function invariant_protocolMustHaveMoreValueThanTotalSupplyDollars() public view {
+        uint256 totalSupply = dsc.totalSupply();
+        uint256 wethDeposted = ERC20Mock(weth).balanceOf(address(engine));
+        uint256 wbtcDeposited = ERC20Mock(btc).balanceOf(address(engine));
+
+        uint256 wethValue = engine.getUsdValue(weth, wethDeposted);
+        uint256 wbtcValue = engine.getUsdValue(btc, wbtcDeposited);
+
+        console.log("wethValue: %s", wethValue);
+        console.log("wbtcValue: %s", wbtcValue);
+
+        assert(wethValue + wbtcValue >= totalSupply);
     }
 }
