@@ -36,9 +36,6 @@ contract OpenInvariantsTest is StdInvariant, Test {
         // targetContract(address(engine));
         handler = new Handler(engine, dsc);
         targetContract(address(handler));
-        console.log("handler: %s", address(handler));
-        console.log("engine: %s", address(engine));
-        console.log("dsc: %s", address(dsc));
         // hey, don't call redeemcollateral, unless there is collateral to redeem
     }
 
@@ -55,21 +52,24 @@ contract OpenInvariantsTest is StdInvariant, Test {
 
         console.log("totalSupply", totalSupply);
         console.log("totalCollateralValue", totalCollateralValue);
+        console.log("totalWethDeposited", totalWethDeposited);
+        console.log("totalBtcDeposited", totalBtcDeposited);
+        console.log("timesMintIsCalled", handler.timesMintIsCalled());
 
         assert(totalCollateralValue >= totalSupply);
     }
 
-    // function invariant_protocolMustHaveMoreValueThanTotalSupplyDollars() public view {
-    //     uint256 totalSupply = dsc.totalSupply();
-    //     uint256 wethDeposted = ERC20Mock(weth).balanceOf(address(engine));
-    //     uint256 wbtcDeposited = ERC20Mock(btc).balanceOf(address(engine));
-
-    //     uint256 wethValue = engine.getUsdValue(weth, wethDeposted);
-    //     uint256 wbtcValue = engine.getUsdValue(btc, wbtcDeposited);
-
-    //     console.log("wethValue: %s", wethValue);
-    //     console.log("wbtcValue: %s", wbtcValue);
-
-    //     assert(wethValue + wbtcValue >= totalSupply);
-    // }
+    function invariant_gettersCantRevert() public view {
+        engine.getAdditionalFeedPrecision();
+        engine.getCollateralTokens();
+        engine.getLiquidationBonus();
+        engine.getLiquidationThreshold();
+        engine.getMinHealthFactor();
+        engine.getPrecision();
+        engine.getDsc();
+        // engine.getTokenAmountFromUsd();
+        // engine.getCollateralTokenPriceFeed();
+        // engine.getCollateralBalanceOfUser();
+        // getAccountCollateralValue();
+    }
 }
