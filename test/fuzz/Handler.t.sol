@@ -39,7 +39,7 @@ contract Handler is Test {
 
         int256 maxDscToMint = (int256(collateralValueInUsd) / 2) - int256(totalDscMinted);
         if (maxDscToMint < 0) {
-            return;
+            return; 
         }
         amountDsc = bound(amountDsc, 0, uint256(maxDscToMint));
         if (amountDsc == 0) {

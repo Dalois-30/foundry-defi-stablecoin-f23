@@ -76,3 +76,4 @@ contract DecentralizedStableCoin is ERC20Burnable, Ownable {
         return true;
     }
 }
+ 

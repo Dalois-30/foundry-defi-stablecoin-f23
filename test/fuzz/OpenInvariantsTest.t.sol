@@ -20,7 +20,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ERC20Mock } from "../mocks/ERC20Mock.sol";
 import { Handler } from "../fuzz/Handler.t.sol";
 
-contract OpenInvariantsTest is StdInvariant, Test {
+contract OpenInvariantsTest is StdInvariant, Test { 
     DeployDSC deployDSC;
     DSCEngine engine;
     DecentralizedStableCoin dsc;
